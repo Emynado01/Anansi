@@ -1,6 +1,14 @@
 import SignInForm from "./SignInForm";
 
-const SignInPage = () => {
+interface SignInPageProps {
+  searchParams?: {
+    callbackUrl?: string;
+  };
+}
+
+const SignInPage = ({ searchParams }: SignInPageProps) => {
+  const callbackUrl = searchParams?.callbackUrl || "/admin";
+
   return (
     <div className="mx-auto max-w-md space-y-6 rounded-[8px] border border-slate-200 bg-white/90 p-8 shadow-xl shadow-brand-200/30 dark:border-slate-700 dark:bg-slate-900/80">
       <div className="space-y-2 text-center">
@@ -9,7 +17,7 @@ const SignInPage = () => {
           Accédez à la console pour publier et modifier les livres audio Anansi.
         </p>
       </div>
-      <SignInForm />
+      <SignInForm callbackUrl={callbackUrl} />
     </div>
   );
 };
