@@ -6,6 +6,9 @@ import prisma from "@/lib/prisma";
 import { getServerAuthSession } from "@/lib/auth";
 import { isAbsoluteUrl, normalizeStorageKey, resolveMediaUrl } from "@/lib/media";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const chapterSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1),

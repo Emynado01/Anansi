@@ -5,6 +5,9 @@ import { NextRequest } from "next/server";
 import { normalizeStorageKey } from "@/lib/media";
 import { getS3Client } from "@/lib/storage";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const bucket = process.env.S3_BUCKET;
 
 const toWebStream = (body: unknown) => {

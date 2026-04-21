@@ -5,6 +5,9 @@ import path from "node:path";
 import { getServerAuthSession } from "@/lib/auth";
 import { uploadObject } from "@/lib/storage";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const MAX_FILE_SIZE_MB = 250;
 const LIBRARY_PREFIX = (process.env.S3_LIBRARY_PREFIX ?? "Anansi").replace(/^\/+|\/+$/g, "");
 

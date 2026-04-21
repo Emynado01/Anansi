@@ -5,6 +5,9 @@ import { Role } from "@prisma/client";
 
 import prisma from "@/lib/prisma";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const signupSchema = z.object({
   name: z.string().min(2, "Nom trop court"),
   email: z.string().email("Email invalide"),
