@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 import { notFound } from "next/navigation";
 
 import { resolveMediaUrl } from "@/lib/media";
@@ -10,7 +11,11 @@ interface BookDetailsPageProps {
   params: { id: string };
 }
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const BookDetailsPage = async ({ params }: BookDetailsPageProps) => {
+  noStore();
   const audiobook = await prisma.audiobook.findFirst({
     where: { id: params.id, isPublished: true },
     include: {

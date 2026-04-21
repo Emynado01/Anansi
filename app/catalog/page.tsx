@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
+import { unstable_noStore as noStore } from "next/cache";
 
 import BookCard from "@/components/BookCard";
 import CatalogFilters from "./CatalogFilters";
@@ -10,7 +11,11 @@ interface CatalogPageProps {
   searchParams: Record<string, string | string[] | undefined>;
 }
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const CatalogPage = async ({ searchParams }: CatalogPageProps) => {
+  noStore();
   const q = typeof searchParams.q === "string" ? searchParams.q : null;
   const duration = typeof searchParams.duration === "string" ? searchParams.duration : null;
   const language = typeof searchParams.language === "string" ? searchParams.language : null;

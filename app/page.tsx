@@ -1,10 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 
 import { resolveMediaUrl } from "@/lib/media";
 import prisma from "@/lib/prisma";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const HomePage = async () => {
+  noStore();
   const books = await prisma.audiobook.findMany({
     take: 16,
     where: { isPublished: true },
