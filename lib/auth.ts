@@ -6,7 +6,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 import prisma from "@/lib/prisma";
 
-export const authOptions: NextAuthOptions = {
+export const getAuthOptions = (): NextAuthOptions => ({
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
@@ -76,6 +76,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+});
 
-export const getServerAuthSession = () => getServerSession(authOptions);
+export const getServerAuthSession = () => getServerSession(getAuthOptions());

@@ -10,10 +10,26 @@ const log: Prisma.PrismaClientOptions["log"] =
     ? ["query", "error", "warn"]
     : ["error", "warn"];
 
-const prisma = global.prisma ?? new PrismaClient({ log });
+let client: PrismaClient | undefined;
 
-if (process.env.NODE_ENV !== "production") {
-  global.prisma = prisma;
-}
+const getPrismaClient = () => {
+  if (client) return client;
+
+  client = global.prisma ?? new PrismaClient({ log });
+
+  if (process.env.NODE_ENV !== "production") {
+    global.prisma = client;
+  }
+
+  return client;
+};
+
+const prisma = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    const resolvedClient = getPrismaClient();
+    const value = Reflect.get(resolvedClient, property, resolvedClient);
+    return typeof value === "function" ? value.bind(resolvedClient) : value;
+  },
+});
 
 export default prisma;
