@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getServerAuthSession } from "@/lib/auth";
@@ -6,7 +7,11 @@ import { resolveMediaUrl } from "@/lib/media";
 
 import AdminAudiobookTable from "./AdminAudiobookTable";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const AdminPage = async () => {
+  noStore();
   const session = await getServerAuthSession();
 
   if (!session?.user || session.user.role !== "ADMIN") {
