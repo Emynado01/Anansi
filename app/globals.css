@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-zinc-50 text-zinc-950 antialiased dark:bg-black dark:text-zinc-100;
+}
+
+.bg-griot-gradient {
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.16) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(16, 185, 129, 0.12) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(212, 255, 45, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.34));
+  background-size: 72px 72px, 72px 72px, 100% 100%, 100% 100%;
+}
+
+.neo-panel {
+  position: relative;
+  border: 1px solid rgba(8, 145, 178, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(244, 244, 245, 0.78)),
+    repeating-linear-gradient(90deg, rgba(8, 145, 178, 0.06) 0 1px, transparent 1px 18px);
+  box-shadow: 0 24px 70px -40px rgba(8, 145, 178, 0.5);
+}
+
+.dark .neo-panel {
+  border-color: rgba(103, 232, 249, 0.24);
+  background:
+    linear-gradient(135deg, rgba(24, 24, 27, 0.86), rgba(0, 0, 0, 0.78)),
+    repeating-linear-gradient(90deg, rgba(103, 232, 249, 0.07) 0 1px, transparent 1px 18px);
+}
+
+.neo-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(212, 255, 45, 0.18), transparent);
+  opacity: 0;
+  transform: translateX(-40%);
+  animation: panel-sweep 7s ease-in-out infinite;
+}
+
+.scanline {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(103, 232, 249, 0.12), transparent);
+  transform: translateY(-100%);
+  animation: scanline 5.5s linear infinite;
+}
+
+.glitch-title {
+  text-shadow:
+    1px 0 rgba(103, 232, 249, 0.5),
+    -1px 0 rgba(212, 255, 45, 0.45);
+}
+
+.motion-grid {
+  animation: grid-drift 18s linear infinite;
+}
+
+@keyframes panel-sweep {
+  0%, 42%, 100% {
+    opacity: 0;
+    transform: translateX(-45%);
+  }
+  50% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0;
+    transform: translateX(45%);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 72px 72px, 72px 72px, 0 0, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-grid,
+  .neo-panel::before,
+  .scanline::after {
+    animation: none !important;
+  }
+}
+
+.range::-webkit-slider-thumb {
+  @apply h-4 w-4 appearance-none rounded-full bg-brand-500 shadow-glow;
+  margin-top: -6px;
+}
+
+.range::-moz-range-thumb {
+  @apply h-4 w-4 rounded-full border-0 bg-brand-500 shadow-glow;
+}
+
+.range::-webkit-slider-runnable-track {
+  @apply h-2 rounded-full bg-slate-200 dark:bg-slate-700;
+}
+
+.range::-moz-range-track {
+  @apply h-2 rounded-full bg-slate-200 dark:bg-slate-700;
+}
+
+main {
+  scroll-padding-top: 6rem;
+}
+
+::selection {
+  background-color: rgba(8, 145, 178, 0.25);
+}
+
