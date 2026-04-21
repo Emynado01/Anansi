@@ -1,4 +1,3 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { Role } from "@prisma/client";
 import { compare } from "bcryptjs";
 import type { NextAuthOptions } from "next-auth";
@@ -8,7 +7,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
@@ -76,16 +74,6 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role ?? Role.USER;
       }
       return session;
-    },
-  },
-  events: {
-    async createUser({ user }) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          email: user.email?.toLowerCase() ?? undefined,
-        },
-      });
     },
   },
 };
