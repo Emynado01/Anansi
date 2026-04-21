@@ -3,8 +3,10 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { notFound } from "next/navigation";
 
+import PublicFallbackNotice from "@/components/PublicFallbackNotice";
 import { resolveMediaUrl } from "@/lib/media";
 import prisma from "@/lib/prisma";
+import { safePublicQuery } from "@/lib/public-data";
 import { formatDuration } from "@/lib/utils";
 
 interface BookDetailsPageProps {
@@ -16,13 +18,29 @@ export const dynamic = "force-dynamic";
 
 const BookDetailsPage = async ({ params }: BookDetailsPageProps) => {
   noStore();
-  const audiobook = await prisma.audiobook.findFirst({
-    where: { id: params.id, isPublished: true },
-    include: {
-      categories: true,
-      chapters: { orderBy: { order: "asc" } },
-    },
-  });
+  const { data: audiobook, failed } = await safePublicQuery(
+    `book_${params.id}`,
+    null,
+    () =>
+      prisma.audiobook.findFirst({
+        where: { id: params.id, isPublished: true },
+        include: {
+          categories: true,
+          chapters: { orderBy: { order: "asc" } },
+        },
+      }),
+  );
+
+  if (failed) {
+    return (
+      <PublicFallbackNotice
+        title="Livre momentanément indisponible"
+        description="Cette page revient dès que la bibliothèque audio est reconnectée."
+        href="/catalog"
+        actionLabel="Retour au catalogue"
+      />
+    );
+  }
 
   if (!audiobook) {
     notFound();

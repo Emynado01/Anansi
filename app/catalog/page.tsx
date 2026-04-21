@@ -3,9 +3,11 @@ import type { Prisma } from "@prisma/client";
 import { unstable_noStore as noStore } from "next/cache";
 
 import BookCard from "@/components/BookCard";
+import PublicFallbackNotice from "@/components/PublicFallbackNotice";
 import CatalogFilters from "./CatalogFilters";
 import prisma from "@/lib/prisma";
 import { resolveMediaUrl } from "@/lib/media";
+import { safePublicQuery } from "@/lib/public-data";
 
 interface CatalogPageProps {
   searchParams: Record<string, string | string[] | undefined>;
@@ -39,25 +41,40 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps) => {
   if (duration === "long") where.durationSec = { gte: 3600 };
   if (categorySlug) where.categories = { some: { slug: categorySlug } };
 
-  const [data, total, languageFacets, moodFacets] = await Promise.all([
-    prisma.audiobook.findMany({
-      where,
-      take: limit,
-      skip: offset,
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    }),
-    prisma.audiobook.count({ where }),
-    prisma.audiobook.findMany({
-      where: { language: { not: null }, isPublished: true },
-      distinct: ["language"],
-      select: { language: true },
-    }),
-    prisma.audiobook.findMany({
-      where: { mood: { not: null }, isPublished: true },
-      distinct: ["mood"],
-      select: { mood: true },
-    }),
-  ]);
+  const { data: catalogData, failed } = await safePublicQuery(
+    "catalog_page",
+    {
+      data: [],
+      total: 0,
+      languageFacets: [] as { language: string | null }[],
+      moodFacets: [] as { mood: string | null }[],
+    },
+    async () => {
+      const [data, total, languageFacets, moodFacets] = await Promise.all([
+        prisma.audiobook.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+        }),
+        prisma.audiobook.count({ where }),
+        prisma.audiobook.findMany({
+          where: { language: { not: null }, isPublished: true },
+          distinct: ["language"],
+          select: { language: true },
+        }),
+        prisma.audiobook.findMany({
+          where: { mood: { not: null }, isPublished: true },
+          distinct: ["mood"],
+          select: { mood: true },
+        }),
+      ]);
+
+      return { data, total, languageFacets, moodFacets };
+    },
+  );
+
+  const { data, total, languageFacets, moodFacets } = catalogData;
 
   const languages = languageFacets
     .map((item) => item.language)
@@ -65,6 +82,15 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps) => {
   const moods = moodFacets
     .map((item) => item.mood)
     .filter((value): value is string => Boolean(value));
+
+  if (failed) {
+    return (
+      <PublicFallbackNotice
+        title="Catalogue momentanément indisponible"
+        description="La bibliothèque audio revient dans un instant."
+      />
+    );
+  }
 
   return (
     <div className="space-y-10">

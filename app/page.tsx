@@ -4,17 +4,23 @@ import { unstable_noStore as noStore } from "next/cache";
 
 import { resolveMediaUrl } from "@/lib/media";
 import prisma from "@/lib/prisma";
+import { safePublicQuery } from "@/lib/public-data";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const HomePage = async () => {
   noStore();
-  const books = await prisma.audiobook.findMany({
-    take: 16,
-    where: { isPublished: true },
-    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-  });
+  const { data: books, failed } = await safePublicQuery(
+    "home_books",
+    [],
+    () =>
+      prisma.audiobook.findMany({
+        take: 16,
+        where: { isPublished: true },
+        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      }),
+  );
 
   return (
     <div className="space-y-10 pb-12">
@@ -109,6 +115,10 @@ const HomePage = async () => {
                 );
               })}
             </div>
+          </div>
+        ) : failed ? (
+          <div className="neo-panel rounded-[8px] p-6 text-sm text-zinc-500 dark:text-zinc-400">
+            La bibliothèque est momentanément indisponible.
           </div>
         ) : (
           <div className="neo-panel rounded-[8px] p-6 text-sm text-zinc-500 dark:text-zinc-400">
