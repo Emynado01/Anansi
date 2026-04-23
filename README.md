@@ -47,3 +47,30 @@ npm run dev
 npm run lint
 npm run build
 ```
+
+## CORS R2 pour les gros uploads
+Les gros fichiers audio sont envoyés directement depuis le navigateur vers R2 avec une URL signée. Le bucket doit donc autoriser les requêtes `PUT` depuis le domaine du site.
+
+Politique CORS recommandée pour le bucket `osmos-files` :
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://anansi-beta.vercel.app",
+      "https://*.vercel.app",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": ["GET", "HEAD", "PUT"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Si les clés R2 ont le droit de modifier la configuration du bucket :
+
+```bash
+npm run r2:cors
+```
