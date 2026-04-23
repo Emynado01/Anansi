@@ -18,6 +18,11 @@ const chapterSchema = z.object({
     .string()
     .optional()
     .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL audio invalide" }),
+  themeAudioKey: z.string().optional(),
+  themeAudioUrl: z
+    .string()
+    .optional()
+    .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL musique d'ambiance invalide" }),
   coverKey: z.string().optional(),
   coverUrl: z
     .string()
@@ -49,6 +54,11 @@ const updateSchema = z.object({
     .string()
     .optional()
     .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL audio invalide" }),
+  themeAudioKey: z.string().optional(),
+  themeAudioUrl: z
+    .string()
+    .optional()
+    .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL musique d'ambiance invalide" }),
   coverKey: z.string().optional(),
   coverUrl: z
     .string()
@@ -77,6 +87,8 @@ const serializeAudiobook = (book: Prisma.AudiobookGetPayload<{ include: { catego
   mood: book.mood,
   audioKey: book.audioKey,
   audioUrl: resolveMediaUrl(book.audioKey, book.audioUrl),
+  themeAudioKey: book.themeAudioKey,
+  themeAudioUrl: resolveMediaUrl(book.themeAudioKey, book.themeAudioUrl),
   coverKey: book.coverKey,
   coverUrl: resolveMediaUrl(book.coverKey, book.coverUrl),
   summary: book.summary,
@@ -135,7 +147,7 @@ export const PATCH = async (request: Request, context: { params: { id: string } 
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const { categories, coverUrl, coverKey, summary, language, mood, chapters, durationSec, audioUrl, audioKey, releasedAt, ...rest } = parsed.data;
+    const { categories, coverUrl, coverKey, summary, language, mood, chapters, durationSec, audioUrl, audioKey, themeAudioUrl, themeAudioKey, releasedAt, ...rest } = parsed.data;
 
     const data: Prisma.AudiobookUpdateInput = { ...rest };
 
@@ -147,6 +159,12 @@ export const PATCH = async (request: Request, context: { params: { id: string } 
     }
     if (audioUrl !== undefined || audioKey !== undefined) {
       data.audioUrl = resolveMediaUrl(audioKey, audioUrl) || null;
+    }
+    if (themeAudioKey !== undefined) {
+      data.themeAudioKey = normalizeStorageKey(themeAudioKey);
+    }
+    if (themeAudioUrl !== undefined || themeAudioKey !== undefined) {
+      data.themeAudioUrl = resolveMediaUrl(themeAudioKey, themeAudioUrl) || null;
     }
 
     if (coverKey !== undefined) {

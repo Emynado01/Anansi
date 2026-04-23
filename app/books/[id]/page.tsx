@@ -8,6 +8,7 @@ import { resolveMediaUrl } from "@/lib/media";
 import prisma from "@/lib/prisma";
 import { safePublicQuery } from "@/lib/public-data";
 import { formatDuration } from "@/lib/utils";
+import BookAmbiencePlayer from "./BookAmbiencePlayer";
 
 interface BookDetailsPageProps {
   params: { id: string };
@@ -47,6 +48,7 @@ const BookDetailsPage = async ({ params }: BookDetailsPageProps) => {
   }
 
   const bookCoverUrl = resolveMediaUrl(audiobook.coverKey, audiobook.coverUrl);
+  const themeAudioUrl = resolveMediaUrl(audiobook.themeAudioKey, audiobook.themeAudioUrl);
   const chapters =
     audiobook.chapters.length > 0
       ? audiobook.chapters.map((chapter, index) => ({
@@ -124,6 +126,8 @@ const BookDetailsPage = async ({ params }: BookDetailsPageProps) => {
                   "Le résumé de ce livre audio n'est pas encore disponible. Il pourra être ajouté depuis l'espace administrateur."}
               </p>
             </div>
+
+            {themeAudioUrl && <BookAmbiencePlayer src={themeAudioUrl} title={audiobook.title} />}
 
             <div className="grid gap-4 sm:grid-cols-[1fr,auto] sm:items-end">
               <dl className="grid gap-3 text-sm text-zinc-600 sm:grid-cols-3 dark:text-zinc-300">

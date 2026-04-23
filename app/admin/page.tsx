@@ -69,6 +69,8 @@ const AdminPage = async () => {
       mood: book.mood,
       audioKey: book.audioKey,
       audioUrl: resolveMediaUrl(book.audioKey, book.audioUrl),
+      themeAudioKey: book.themeAudioKey,
+      themeAudioUrl: resolveMediaUrl(book.themeAudioKey, book.themeAudioUrl),
       coverKey: book.coverKey,
       coverUrl: resolveMediaUrl(book.coverKey, book.coverUrl),
       summary: book.summary,

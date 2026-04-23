@@ -84,6 +84,8 @@ model Audiobook {
   priceCents   Int                  @default(0)
   audioKey     String?
   audioUrl     String?
+  themeAudioKey String?
+  themeAudioUrl String?
   coverKey     String?
   coverUrl     String?
   summary      String?

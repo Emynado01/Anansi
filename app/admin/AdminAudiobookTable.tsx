@@ -35,6 +35,8 @@ interface AudiobookItem {
   mood: string | null;
   audioKey?: string | null;
   audioUrl?: string | null;
+  themeAudioKey?: string | null;
+  themeAudioUrl?: string | null;
   coverUrl: string | null;
   coverKey?: string | null;
   summary: string | null;
@@ -102,6 +104,13 @@ const formSchema = z.object({
   mood: z.string().optional(),
   audioKey: z.string().optional(),
   audioUrl: z.string().optional(),
+  themeAudioKey: z.string().optional(),
+  themeAudioUrl: z
+    .string()
+    .optional()
+    .refine((value) => !value || isAbsoluteUrl(value) || value.startsWith("/"), {
+      message: "URL musique d'ambiance invalide",
+    }),
   coverKey: z.string().optional(),
   coverUrl: z
     .string()
@@ -129,6 +138,8 @@ const emptyForm = {
   mood: "",
   audioKey: "",
   audioUrl: "",
+  themeAudioKey: "",
+  themeAudioUrl: "",
   coverKey: "",
   coverUrl: "",
   summary: "",
@@ -203,6 +214,8 @@ const AdminAudiobookTable = ({ audiobooks, categories }: AdminAudiobookTableProp
       const uploaded = (await response.json()) as { key: string; url: string | null };
       if (target === "book-cover") {
         setFormData((prev) => ({ ...prev, coverKey: uploaded.key, coverUrl: uploaded.url ?? "" }));
+      } else if (target === "theme-audio") {
+        setFormData((prev) => ({ ...prev, themeAudioKey: uploaded.key, themeAudioUrl: uploaded.url ?? "" }));
       } else if (target === "chapter-audio" && chapterIndex !== undefined) {
         updateChapter(chapterIndex, { audioKey: uploaded.key, audioUrl: uploaded.url ?? "" });
       } else if (target === "chapter-cover" && chapterIndex !== undefined) {
@@ -240,6 +253,8 @@ const AdminAudiobookTable = ({ audiobooks, categories }: AdminAudiobookTableProp
         mood: item.mood ?? "",
         audioKey: item.audioKey ?? chapters[0]?.audioKey ?? "",
         audioUrl: item.audioUrl ?? chapters[0]?.audioUrl ?? "",
+        themeAudioKey: item.themeAudioKey ?? "",
+        themeAudioUrl: item.themeAudioUrl ?? "",
         coverKey: item.coverKey ?? "",
         coverUrl: item.coverUrl ?? "",
         summary: item.summary ?? "",
@@ -329,6 +344,8 @@ const AdminAudiobookTable = ({ audiobooks, categories }: AdminAudiobookTableProp
       coverUrl: formData.coverUrl?.trim() || undefined,
       audioKey: orderedChapters[0]?.audioKey || undefined,
       audioUrl: orderedChapters[0]?.audioUrl || undefined,
+      themeAudioKey: formData.themeAudioKey?.trim() || undefined,
+      themeAudioUrl: formData.themeAudioUrl?.trim() || undefined,
       durationSec,
       chapters: orderedChapters,
     };
@@ -445,7 +462,7 @@ const AdminAudiobookTable = ({ audiobooks, categories }: AdminAudiobookTableProp
                 <TextField label="Ambiance" value={formData.mood} onChange={(value) => setField("mood", value)} />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-[1fr,1fr]">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2 rounded-[8px] border border-white/10 bg-white/5 p-4">
                   <label className="text-xs font-semibold uppercase text-zinc-400">Couverture du livre</label>
                   <input type="file" accept="image/*" onChange={(event) => {
@@ -456,6 +473,20 @@ const AdminAudiobookTable = ({ audiobooks, categories }: AdminAudiobookTableProp
                   <TextField label="Clé S3 couverture" value={formData.coverKey} onChange={(value) => setField("coverKey", value)} placeholder="Anansi/boss/images/cover.png" />
                   <TextField label="URL couverture" value={formData.coverUrl} onChange={(value) => setField("coverUrl", value)} />
                   {uploading === "book-cover" && <p className="text-xs text-brand-200">Envoi de la couverture...</p>}
+                </div>
+                <div className="space-y-2 rounded-[8px] border border-white/10 bg-white/5 p-4">
+                  <label className="text-xs font-semibold uppercase text-zinc-400">Musique d&apos;ambiance du livre</label>
+                  <input type="file" accept="audio/*" onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    if (file) void uploadFile(file, "audio", "theme-audio");
+                    event.currentTarget.value = "";
+                  }} />
+                  <TextField label="Clé S3 musique" value={formData.themeAudioKey} onChange={(value) => setField("themeAudioKey", value)} placeholder="Anansi/boss/audio/theme.mp3" />
+                  <TextField label="URL musique" value={formData.themeAudioUrl} onChange={(value) => setField("themeAudioUrl", value)} />
+                  <p className="text-xs leading-5 text-zinc-400">
+                    Lecture tentée automatiquement sur la fiche du livre, avec contrôle pause visible.
+                  </p>
+                  {uploading === "theme-audio" && <p className="text-xs text-brand-200">Envoi de la musique...</p>}
                 </div>
                 <div className="space-y-2 rounded-[8px] border border-white/10 bg-white/5 p-4">
                   <label className="text-xs font-semibold uppercase text-zinc-400">Résumé</label>

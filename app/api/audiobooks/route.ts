@@ -18,6 +18,11 @@ const chapterSchema = z.object({
     .string()
     .optional()
     .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL audio invalide" }),
+  themeAudioKey: z.string().optional(),
+  themeAudioUrl: z
+    .string()
+    .optional()
+    .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL musique d'ambiance invalide" }),
   coverKey: z.string().optional(),
   coverUrl: z
     .string()
@@ -49,6 +54,11 @@ const createAudiobookSchema = z.object({
     .string()
     .optional()
     .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL audio invalide" }),
+  themeAudioKey: z.string().optional(),
+  themeAudioUrl: z
+    .string()
+    .optional()
+    .refine((v) => !v || isAbsoluteUrl(v) || v.startsWith("/"), { message: "URL musique d'ambiance invalide" }),
   coverKey: z.string().optional(),
   coverUrl: z
     .string()
@@ -76,6 +86,8 @@ const serializeAudiobook = (book: Prisma.AudiobookGetPayload<{ include: { catego
   mood: book.mood,
   audioKey: book.audioKey,
   audioUrl: resolveMediaUrl(book.audioKey, book.audioUrl),
+  themeAudioKey: book.themeAudioKey,
+  themeAudioUrl: resolveMediaUrl(book.themeAudioKey, book.themeAudioUrl),
   coverKey: book.coverKey,
   coverUrl: resolveMediaUrl(book.coverKey, book.coverUrl),
   summary: book.summary,
@@ -195,6 +207,7 @@ export const POST = async (request: Request) => {
     }
 
     const normalizedAudioKey = normalizeStorageKey(rest.audioKey);
+    const normalizedThemeAudioKey = normalizeStorageKey(rest.themeAudioKey);
     const normalizedCoverKey = normalizeStorageKey(rest.coverKey);
     const fallbackAudioUrl = resolveMediaUrl(normalizedAudioKey, rest.audioUrl);
 
@@ -204,6 +217,8 @@ export const POST = async (request: Request) => {
         priceCents: rest.priceCents ?? 0,
         audioKey: normalizedAudioKey,
         audioUrl: fallbackAudioUrl || chapters[0]?.audioUrl || null,
+        themeAudioKey: normalizedThemeAudioKey,
+        themeAudioUrl: resolveMediaUrl(normalizedThemeAudioKey, rest.themeAudioUrl) || null,
         coverKey: normalizedCoverKey,
         coverUrl: resolveMediaUrl(normalizedCoverKey, rest.coverUrl) || null,
         durationSec: inferredDuration,
