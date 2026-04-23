@@ -8,7 +8,6 @@ import { uploadObject } from "@/lib/storage";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_FILE_SIZE_MB = 250;
 const LIBRARY_PREFIX = (process.env.S3_LIBRARY_PREFIX ?? "Anansi").replace(/^\/+|\/+$/g, "");
 
 const safePathSegment = (value: string) =>
@@ -43,11 +42,6 @@ export const POST = async (request: Request) => {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    const sizeMB = buffer.length / (1024 * 1024);
-    if (sizeMB > MAX_FILE_SIZE_MB) {
-      return NextResponse.json({ error: "Fichier trop volumineux" }, { status: 413 });
-    }
 
     const ext = path.extname(file.name) || (kind === "image" ? ".png" : ".mp3");
     const safeExt = ext.toLowerCase().slice(0, 8);

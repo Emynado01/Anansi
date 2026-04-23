@@ -199,27 +199,49 @@ const AdminAudiobookTable = ({ audiobooks, categories }: AdminAudiobookTableProp
   };
 
   const uploadFile = async (file: File, type: "image" | "audio", target: string, chapterIndex?: number) => {
-    const body = new FormData();
-    body.set("file", file);
-    body.set("type", type);
-    body.set("bookFolder", currentFolder);
-
     setUploading(target);
     setError(null);
     try {
-      const response = await fetch("/api/upload", { method: "POST", body });
-      if (!response.ok) {
-        throw new Error("upload_failed");
+      const presignResponse = await fetch("/api/upload/presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          type,
+          bookFolder: currentFolder,
+        }),
+      });
+
+      if (!presignResponse.ok) {
+        throw new Error("presign_failed");
       }
-      const uploaded = (await response.json()) as { key: string; url: string | null };
+
+      const signedUpload = (await presignResponse.json()) as {
+        key: string;
+        url: string | null;
+        uploadUrl: string;
+        headers?: Record<string, string>;
+      };
+
+      const uploadResponse = await fetch(signedUpload.uploadUrl, {
+        method: "PUT",
+        headers: signedUpload.headers ?? {},
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("direct_upload_failed");
+      }
+
       if (target === "book-cover") {
-        setFormData((prev) => ({ ...prev, coverKey: uploaded.key, coverUrl: uploaded.url ?? "" }));
+        setFormData((prev) => ({ ...prev, coverKey: signedUpload.key, coverUrl: signedUpload.url ?? "" }));
       } else if (target === "theme-audio") {
-        setFormData((prev) => ({ ...prev, themeAudioKey: uploaded.key, themeAudioUrl: uploaded.url ?? "" }));
+        setFormData((prev) => ({ ...prev, themeAudioKey: signedUpload.key, themeAudioUrl: signedUpload.url ?? "" }));
       } else if (target === "chapter-audio" && chapterIndex !== undefined) {
-        updateChapter(chapterIndex, { audioKey: uploaded.key, audioUrl: uploaded.url ?? "" });
+        updateChapter(chapterIndex, { audioKey: signedUpload.key, audioUrl: signedUpload.url ?? "" });
       } else if (target === "chapter-cover" && chapterIndex !== undefined) {
-        updateChapter(chapterIndex, { coverKey: uploaded.key, coverUrl: uploaded.url ?? "" });
+        updateChapter(chapterIndex, { coverKey: signedUpload.key, coverUrl: signedUpload.url ?? "" });
       }
       setSuccess("Fichier envoyé vers S3.");
     } catch (err) {
